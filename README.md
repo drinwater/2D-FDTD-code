@@ -7,3 +7,8 @@ The code obviously needs some cleaning up, which I intend to do in the future.
 Next steps include extending this code to 3-D.
 
 Code written entirely by me, following the lecture series by Prof. Raymond Rumpf at UT El Paso.
+
+
+## Demo
+
+![](test5.gif.avi)
