@@ -11,4 +11,4 @@ Code written entirely by me, following the lecture series by Prof. Raymond Rumpf
 
 ## Demo
 
-![](test5.gif.avi)
+https://user-images.githubusercontent.com/97717818/149527023-24175842-6607-4b71-b53b-df476f00f620.mp4
