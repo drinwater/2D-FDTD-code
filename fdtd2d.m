@@ -1,4 +1,4 @@
-function [] = fdtd2d(Nx,Ny,dx,dy,Nt,df,shape,r,l,b,NPML,ur, er, nbc, freq, epssrc, musrc,src)
+function [] = fdtd2dfinal(Nx,Ny,dx,dy,Nt,df,shape,r,l,b,NPML,ur, er, nbc, freq, epssrc, musrc,src)
 % Usage: fdtd2d(Nx,Ny,dx,dy,Nt,df,r,NPML,ur, er, nbc, freq, epssrc, musrc,src)
 % For a quick test, run the following command in the Command Window: fdtd2d(1000,1000,1,1,10,1e6,200,[20 20 20 20],2,-1+ 6i, 1, 1e8, 1, 1,200)
 % Function to calculate E field profile for a sphere/rectangle next to a Total-field/Scattered-field (TF/SF) source using the FDTD method in the 2D domain. The function plots a movie of the transient E field as the simulation runs.
@@ -219,6 +219,7 @@ for T = 1:steps
     %Update Ez
     Ez = mDz1.*Dz;
     
+    clf;
     fig = imagesc(Ez, [-0.3 0.3])
     
     hold on
