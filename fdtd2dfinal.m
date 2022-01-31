@@ -1,4 +1,4 @@
-function [] = fdtd2dfinal(Nx,Ny,dx,dy,Nt,df,shape,r,l,b,NPML,ur, er, nbc, freq, epssrc, musrc,src)
+function [] = fdtd2dedit(Nx,Ny,dx,dy,Nt,df,shape,r,l,b,NPML,ur, er, nbc, freq, epssrc, musrc,src)
 % Usage: fdtd2d(Nx,Ny,dx,dy,Nt,df,r,NPML,ur, er, nbc, freq, epssrc, musrc,src)
 % For a quick test, run the following command in the Command Window: fdtd2d(1000,1000,1,1,10,1e6,200,[20 20 20 20],2,-1+ 6i, 1, 1e8, 1, 1,200)
 % Function to calculate E field profile for a sphere/rectangle next to a Total-field/Scattered-field (TF/SF) source using the FDTD method in the 2D domain. The function plots a movie of the transient E field as the simulation runs.
@@ -28,44 +28,79 @@ if strcmp(shape,'rectangle')
     r = 'None';
 end
 
+Nx = ceil(Nx/dx);
+Ny = ceil(Ny/dy);
 e0 = 8.85e-12;
 Nx2 = 2*Nx;
 Ny2 = 2*Ny;
+src = ceil(src/dx);
 dx2 = dx/2;
 dy2 = dy/2;
 epsrc = 1;
 musrc = 1;
-% %Build geometry
-% if strcmp(shape,'sphere')
-%     xa2 = [0:Nx2-1]*dx2;
-%     ya2 = [0:Ny2-1]*dy2;
-%     xa2 = xa2 - mean(xa2);
-%     ya2 = ya2 - mean(ya2);
-%     [Y2,X2] = meshgrid(ya2,xa2);
-%     ER2 = (X2.^2 + Y2.^2);
-%     %<= r.^2 & (X2.^2 + Y2.^2) >= r2.^2;
-%     ER2(floor(Nx/2)+5:floor(Nx/2)+5+(r-r2),1:Ny2) = 1;
-%     ER2 = epssrc*(1-ER2) + er*ER2;
-%     UR2 = (X2.^2 + Y2.^2) <= r.^2 & (X2.^2 + Y2.^2) >= r2.^2;
-%     UR2 = musrc*(1-UR2) + ur*UR2;
-%     %Exx, Eyy, Ezz
-%     URxx = UR2(1:2:Nx2,2:2:Ny2);
-%     URyy = UR2(2:2:Nx2,1:2:Ny2);
-%     ERzz = ER2(1:2:Nx2,1:2:Ny2);
-%     imagesc(ERzz);
-% end
+%Build geometry
+if strcmp(shape,'sphere')
+    xa2 = [0:Nx2-1]*dx2;
+    ya2 = [0:Ny2-1]*dy2;
+    xa2 = xa2 - mean(xa2);
+    ya2 = ya2 - mean(ya2);
+    [Y2,X2] = meshgrid(ya2,xa2);
+    ER2 = (X2.^2 + Y2.^2)<= r.^2;
+    ER2 = epssrc*(1-ER2) + er*ER2;
+    UR2 = (X2.^2 + Y2.^2) <= r.^2;
+    UR2 = musrc*(1-UR2) + ur*UR2;
+    %Exx, Eyy, Ezz
+    URxx = UR2(1:2:Nx2,2:2:Ny2);
+    URyy = UR2(2:2:Nx2,1:2:Ny2);
+    ERzz = ER2(1:2:Nx2,1:2:Ny2);
+    imagesc(ERzz);
+end
+if strcmp(shape,'sphere2') 
+    
+    xa2 = [0:Nx2-1]*dx2;
+    ya2 = [0:Ny2-1]*dy2;
+    xa2 = xa2 - mean(xa2) + r + 1e-9;
+    ya2 = ya2 - mean(ya2);
+    [Y2,X2] = meshgrid(ya2,xa2);
+    ER2 = (X2.^2 + Y2.^2) <= r^2;
+    UR2 = (X2.^2 + Y2.^2) <= r^2;
+    imagesc(ER2);
+    xa2 = [0:Nx2-1]*dx2;
+    ya2 = [0:Ny2-1]*dy2;
+    xa2 = xa2 - mean(xa2) - r - 1e-9;
+    ya2 = ya2 - mean(ya2);
+    [Y2,X2] = meshgrid(ya2,xa2);
+    ER22 = (X2.^2 + Y2.^2)<= r.^2;
+    ER2 = ER2 + ER22;
+    ER2 = epssrc*(1-ER2) + er*ER2;
+    UR22 = (X2.^2 + Y2.^2)<= r.^2;
+    UR2 = UR2 + UR22;
+    
+    UR2 = musrc*(1-UR2) + ur*UR2;
+    %Exx, Eyy, Ezz
+    URxx = UR2(1:2:Nx2,2:2:Ny2);
+    URyy = UR2(2:2:Nx2,1:2:Ny2);
+    ERzz = ER2(1:2:Nx2,1:2:Ny2);
+    imagesc(real(ERzz));
+end
 if strcmp(shape,'rectangle')
     
     nx = round(l/dx);
     nx1 = 1 + floor((Nx - nx)/2);
-    nx2 = nx1 + nx -1;
+    nx2 = nx1 + nx - 1;
     
     ny = round(b/dy);
     ny1 = 1 + floor((Ny - ny)/2);
     ny2 = ny1 + ny -1;
+    ny1 = ny1 - 25 - 1;
+    ny2 = ny2 - 25 - 1;
     
     ER2 = zeros(Nx,Ny);
     UR2 = zeros(Nx,Ny);
+    ER2(nx1:nx2,ny1:ny2) = 1;
+    UR2(nx1:nx2,ny1:ny2) = 1;
+    ny1 = ny1 + 26 + 25 + 1;
+    ny2 = ny2 + 26 + 25 + 1;
     ER2(nx1:nx2,ny1:ny2) = 1;
     ER2 = epssrc*(1-ER2) + er*ER2;
     UR2(nx1:nx2,ny1:ny2) = 1;
@@ -75,6 +110,8 @@ if strcmp(shape,'rectangle')
     URyy = UR2;
     ERzz = ER2; 
     o = nx1;
+    clf
+    imagesc(real(ER2));
 end
 
 imagesc(real(URyy));
@@ -84,13 +121,19 @@ dt = 1/(Nt*freq);
 tau = 0.5/freq;
 t0 = 10*tau;
 steps = 1/(dt*df);
+steps = 10000;
 t = [0:steps-1]*dt;
 Ezsrc = exp(-((t-t0)/tau).^2);
 nsrc = sqrt(musrc*epssrc);
 c0 = 299792458;
 diract = (nsrc*dy/(2*c0)) + dt/2;
 Hxsrc = sqrt(epssrc/musrc)*exp(-((t+diract-t0)/tau).^2);
-%plot(linspace(1,steps,steps),Ezsrc)
+% A = readmatrix("Au.txt");
+% omega = 2*pi*299792458./(A(:,1));
+% n = A(:,2) + i*A(:,3);
+% gamma = (omegapsquared./((1-n)*i*2*pi*299792458./A(:,1))) - (2*pi*299792458./A(:,1));
+% gamma = interp1d(A(:,1), gamma, t);
+% %plot(linspace(1,steps,steps),Ezsrc)
 
 %PML
 sigx = zeros(Nx2,Ny2);
@@ -144,6 +187,12 @@ Dz = zeros(Nx,Ny);
 ICEx = zeros(Nx,Ny);
 ICEy = zeros(Nx,Ny);
 IDz = zeros(Nx,Ny);
+Px = zeros(Nx,Ny);
+Py = zeros(Nx,Ny);
+Pz = zeros(Nx,Ny);
+densx = zeros(Nx,Ny);
+densy = zeros(Nx,Ny);
+densz = zeros(Nx,Ny);
 
 % %initialise Fourier transforms
 % NFREQ = 1000;
@@ -159,12 +208,27 @@ IDz = zeros(Nx,Ny);
 % ESRC = [];
 % EA = [];
 axis tight
-myVideo = VideoWriter('test5.gif'); %open video file
+myVideo = VideoWriter('test1232.gif'); %open video file
 myVideo.FrameRate = 30;  %can adjust this, 5 - 10 works well for me
 open(myVideo)
+dx = dx*1e9;
+dy = dy*1e9;
+fig = figure('visible','off');
+tic
 for T = 1:steps
     
-    % Find Curl of Ex and Ey
+    for nx = 1 : Nx
+        for ny = 1 : Ny
+            Pz(nx,ny) = Pz(nx,ny) + dt*densz(nx,ny);
+        end
+    end
+    
+%     for nx = 1 : Nx
+%         for ny = 1 : Ny
+%             densz(nx,ny) = ((2-gamma(find(t==((T-1)*dt)))*dt)/(2+gamma(find(t==((T-1)*dt)))*dt))*densz(nx.ny) - ...
+%                             ((2*((2*pi*299792458/freq)^2)
+%     
+%     % Find Curl of Ex and Ey
     for nx = 1 : Nx
         for ny = 1 : Ny-1
             CEx(nx,ny) = (Ez(nx,ny+1) - Ez(nx,ny))/dy;
@@ -189,7 +253,7 @@ for T = 1:steps
     %Update H field
     Hx = mHx1.*Hx + mHx2.*CEx + mHx3.*ICEx;
     Hy = mHy1.*Hy + mHy2.*CEy + mHx3.*ICEy;
-    fprintf(num2str(size(Hx)))
+    %fprintf(num2str(size(Hx)))
     %Find curl of H
     CHz(1,1) = (Hy(1,1) - 0)/dx - (Hx(1,1) - 0)/dy;
     for nx = 2 : Nx
@@ -220,38 +284,24 @@ for T = 1:steps
     Ez = mDz1.*Dz;
     
     clf;
-    fig = imagesc(Ez, [-0.3 0.3])
+    %fig = imagesc(real(Ez),[-0.3 0.3])
     
+    draw2d(linspace(1e-9,Nx*1e-9,Nx),linspace(1e-9,Ny*1e-9,Ny),ERzz',real(Ez'),NPML*1e9);
     hold on
     if strcmp(shape,'circle')
         viscircles([Nx/2,Ny/2], r,'Color','k');
     end
     if strcmp(shape,'rectangle')
-        rectangle('Position', [o,o,l,b])
+        rectangle('Position', [o-25-1,o,l,b])
+        rectangle('Position', [o+25+1,o,l,b])
     end
     colormap(redblue)
     title("Step " + num2str(T) + " of " + num2str(steps))
+    fprintf("Step " + num2str(T) + " of " + num2str(steps) + '\n')
     colorbar
     drawnow
     
-%     if T == 100
-%         image = getframe
-%         imwrite(image.cdata,"tets.png")
-%         A = imread('test.png');
-%         sz = size(A);
-%         xg = 1:sz(1);
-%         yg = 1:sz(2);
-%         F = griddedInterpolant({xg,yg},double(A));
-%         xq = (1:0.1:sz(1))';
-%         yq = (1:0.1:sz(2))';
-%         vq = uint8(F({xq,yq}));
-%         imshow(vq(1:2991,1:2991,:),'InitialMagnification','fit')
-%         zoom(10)
-%         title('Linear method')
-%         fprintf("dcsf")
-%     end
-%     
     writeVideo(myVideo, getframe)
 end
-
+toc
 end
